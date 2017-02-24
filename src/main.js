@@ -9,5 +9,9 @@ new Vue({
   el: '#app',
   router,
   template: '<App/>',
-  components: { App }
+  components: { App },
+  created () {
+    'use strict';
+    router.push('/goods')
+  }
 })
