@@ -19,28 +19,61 @@ time, mark, audio, video {
   font: inherit;
   vertical-align: baseline;
 }
+
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
   display: block;
 }
+
 body {
   line-height: 1;
 }
+
 ol, ul {
   list-style: none;
 }
+
 blockquote, q {
   quotes: none;
 }
+
 blockquote:before, blockquote:after,
 q:before, q:after {
   content: '';
   content: none;
 }
+
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
-/* custom */
-a { text-decoration: none;}
+
+/* custom base*/
+html, body {
+  line-height: 1;
+  font-weight: 200;
+  font-family: 'PingFang SC', 'STHeiti-Light', 'Helvetica-Light', Arial, sans-serif;
+  color: #000;
+}
+
+body {
+  font-size: 0.56rem;
+}
+
+a {
+  text-decoration: none;
+}
+
+.clearfix {
+  display: inline-block;
+}
+
+.clearfix:after {
+  content: '.';
+  display: block;
+  height: 0;
+  line-height: 0;
+  clear: both;
+  visibility: hidden;
+}
