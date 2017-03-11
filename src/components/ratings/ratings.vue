@@ -18,7 +18,7 @@
           <div class="score-wrapper">
             <span class="title">服务态度</span>
             <div class="star-wrapper">
-              <star star-size="36" :score="seller.foodScore"></star>
+              <star :star-size="36" :score="seller.foodScore"></star>
             </div>
             <span class="score">{{seller.foodScore}}</span>
           </div>
@@ -28,22 +28,27 @@
           </div>
         </div>
       </div>
-      <div class="ratings-wrapper">
-        <ratingSelect></ratingSelect>
+      <div class="ratings-wrapper" >
+        <ratingSelect :ratings="ratings"></ratingSelect>
         <div class="ratings-box">
           <ul class="ratings-list" v-if="ratings && ratings.length">
             <li v-for="rating in ratings" class="ratings-item">
               <div class="item-top">
                 <figure class="avatar"><img :src="rating.avatar" alt=""></figure>
                 <div class="user-info">
-                  <span>{{rating.username}}</span>
-                  <div class="info"></div>
+                  <span class="username">{{rating.username}}</span>
+                  <div class="info">
+                    <div class="star-wrapper">
+                      <star :star-size="24" :score="rating.score"></star>
+                    </div>
+                    <span class="delivery">{{rating.deliveryTime}}分钟送达</span></div>
                 </div>
                 <div class="time">{{rating.rateTime}}</div>
               </div>
               <div class="item-main">{{rating.text}}</div>
               <div class="item-bottom">
-                <i></i><span v-for="label in recommend">{{label}}</span>
+                <i class="icon" :class="rating.rateType === 0 ? 'up' : ''"></i><span
+                v-for="label in rating.recommend.slice(0,3)" class="label">{{label}}</span>
               </div>
             </li>
           </ul>
@@ -57,6 +62,7 @@
 </template>
 <script type="text/ecmascript-6">
   import axios from 'axios';
+//  import BScroll from 'better-scroll';
   import star from '../star/star.vue';
   import ratingSelect from '../ratingSelect/ratingSelect.vue';
   const ERR_OK = 0;
@@ -76,11 +82,27 @@
       star,
       ratingSelect
     },
+    filters: {
+      positive (value) {
+        if (!value) return [];
+        let result = [];
+        value.forEach((v) => {
+          if (v.rateType === 1) {
+            result.push(v);
+          }
+        })
+        return result;
+      }
+    },
     created () {
       axios.get('/api/ratings').then((response) => {
         response = response.data;
         if (response.errno === ERR_OK) {
           this.ratings = response.data;
+//          this.$nextTick(() => {
+//              console.log(this.$refs['ratings']);
+//            this.ratings = new BScroll(this.$refs['ratings'], {});
+//          })
         }
       }, (err) => {
         console.log(err);
@@ -172,15 +194,18 @@
     border-bottom: rem(2) solid rgba(7, 17, 27, .1);
     background-color: #fff;
   }
+
   .ratings-box {
-    border-top: rem(2) solid rgba(7,17,27,.1);
+    border-top: rem(2) solid rgba(7, 17, 27, .1);
   }
+
   .ratings-list {
     padding: 0 rem(36);
   }
+
   .ratings-item {
     padding: rem(36) 0;
-    border-bottom: rem(2) solid rgba(7,17,27,.1);
+    border-bottom: rem(2) solid rgba(7, 17, 27, .1);
     .item-top {
       display: flex;
     }
@@ -190,14 +215,56 @@
       height: rem(56);
       margin-right: rem(24);
       img {
-        width:100%;
+        width: 100%;
         height: 100%;
         border-radius: 50%;
         vertical-align: top;
       }
     }
+    .star-wrapper {
+      display: inline-block;
+    }
     .user-info {
-
+      flex: auto;
+    }
+    .delivery, .username, .time {
+      line-height: rem(24);
+      font-size: rem(20);
+      color: rgb(147, 153, 159);
+    }
+    .username {
+      color: rgb(7, 17, 27);
+    }
+    .item-main {
+      font-size: rem(24);
+      line-height: rem(36);
+      padding-left: rem(80);
+      margin-top: rem(12);
+      color: rgb(7, 17, 27);
+    }
+    .item-bottom {
+      padding-left: rem(80);
+      margin-top: rem(16);
+      .icon {
+        display: inline-block;
+        width: rem(24);
+        height: rem(24);
+        background-color: rgb(183, 187, 191);
+        border-radius: 50%;
+        &.up {
+          background-color: rgb(0, 160, 220);
+        }
+      }
+      .label {
+        display: inline-block;
+        height: rem(32);
+        line-height: rem(32);
+        padding: 0 rem(12);
+        margin-left: rem(16);
+        font-size: rem(18);
+        border: 1px solid rgba(7, 17, 27, .1);
+        color: rgb(147, 153, 159);
+      }
     }
   }
 </style>
