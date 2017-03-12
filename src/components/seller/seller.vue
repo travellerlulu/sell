@@ -1,85 +1,127 @@
 <template>
-  <div class="seller-wrapper">
-    <div class="seller-header">
-      <div class="seller-top">
-        <div class="header-left">
-          <h2 class="title">{{seller.name}}</h2>
-          <div class="info-box">
-            <div class="star-wrapper">
-              <star :starSize="36" :score="seller.serviceScore"></star>
+  <div class="seller-wrapper" ref="seller-wrapper">
+    <div class="seller-con">
+      <div class="seller-header">
+        <div class="seller-top">
+          <div class="header-left">
+            <h2 class="title">{{seller.name}}</h2>
+            <div class="info-box">
+              <div class="star-wrapper">
+                <star :starSize="36" :score="seller.serviceScore"></star>
+              </div>
+              <span class="ratingCount">({{seller.ratingCount}})</span>
+              <span class="sellCount">月售{{seller.sellCount}}单</span>
             </div>
-            <span class="ratingCount">({{seller.ratingCount}})</span>
-            <span class="sellCount">月售{{seller.sellCount}}单</span>
+          </div>
+          <div class="header-right">
+            <i class="icon" :class="{'active': favorite}"></i>
+            <span class="text" @click="_followStore($event)">{{favoriteText}}</span>
           </div>
         </div>
-        <div class="header-right">
+        <ul class="des">
+          <li class="des-item">
+            <p class="des-tit">起送价</p>
+            <span class="des-num">{{seller.minPrice}}</span><span class="des-unit">元</span>
+          </li>
+          <li class="des-item">
+            <p class="des-tit">商家配送</p>
+            <span class="des-num">{{seller.deliveryPrice}}</span><span class="des-unit">元</span>
+          </li>
+          <li class="des-item">
+            <p class="des-tit">平均配送时间</p>
+            <span class="des-num">{{seller.deliveryTime}}</span><span class="des-unit">分钟</span>
+          </li>
+        </ul>
+      </div>
+      <div class="seller-bulletin seller-card">
+        <h2 class="title">公告与活动</h2>
+        <p class="bulletin">{{seller.bulletin}}</p>
+        <ul class="seller-activity">
+          <li v-for="support in seller.supports" class="activity-item">
+            <icon :icon-size="3" :icon-type="support.type"></icon>
+            <span class="des">{{support.description}}</span>
+          </li>
+        </ul>
+      </div>
+      <div class="seller-pics seller-card">
+        <h2 class="title">商家实景</h2>
+        <div class="pics-wrapper" ref="pics-wrapper">
+          <ul class="pics-list">
+            <li v-for="pic in seller.pics" class="pics-item"><img :src="pic" alt="" class="pic"></li>
+          </ul>
         </div>
       </div>
-      <ul class="des">
-        <li class="des-item">
-          <p class="des-tit">起送价</p>
-          <span class="des-num">{{seller.minPrice}}</span><span class="des-unit">元</span>
-        </li>
-        <li class="des-item">
-          <p class="des-tit">商家配送</p>
-          <span class="des-num">{{seller.deliveryPrice}}</span><span class="des-unit">元</span>
-        </li>
-        <li class="des-item">
-          <p class="des-tit">平均配送时间</p>
-          <span class="des-num">{{seller.deliveryTime}}</span><span class="des-unit">分钟</span>
-        </li>
-      </ul>
-    </div>
-    <div class="seller-bulletin seller-card">
-      <h2 class="title">公告与活动</h2>
-      <p class="bulletin">{{seller.bulletin}}</p>
-      <ul class="seller-activity">
-        <li v-for="support in seller.supports" class="activity-item">
-          <icon :icon-size="3" :icon-type="support.type"></icon>
-          <span class="des">{{support.description}}</span>
-        </li>
-      </ul>
-    </div>
-    <div class="seller-pics seller-card">
-      <h2 class="title">商家实景</h2>
-      <ul class="pics-list">
-        <li v-for="pic in seller.pics" class="pics-item"><img :src="pic" alt="" class="pic"></li>
-      </ul>
-    </div>
-    <div class="seller-info seller-card">
-      <h2 class="title">商家信息</h2>
-      <ul class="info-list">
-        <li v-for="info in seller.infos" class="info-item">{{info}}</li>
-      </ul>
+      <div class="seller-info seller-card">
+        <h2 class="title">商家信息</h2>
+        <ul class="info-list">
+          <li v-for="info in seller.infos" class="info-item">{{info}}</li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
 <script type="text/ecmascript-6">
-  import axios from 'axios';
+  import BScroll from 'better-scroll';
+  import {saveToLocal, loadFromLocal} from '../../common/js/store';
   import star from '../star/star.vue';
   import icon from '../icon/icon.vue';
 
-  const ERR_OK = 0;
   export default {
+    props: {
+      seller: {
+        type: Object
+      }
+    },
     data () {
       return {
-        seller: {}
+        favorite: (() => {
+          return loadFromLocal(this.seller.id, 'favorite', false);
+        })()
+      };
+    },
+    computed: {
+      favoriteText () {
+        return this.favorite ? '已收藏' : '收藏商家';
       }
     },
     components: {
       star,
       icon
     },
-    created () {
-      axios.get('/api/seller').then((response) => {
-        response = response.data;
-        if (response.errno === ERR_OK) {
-          this.seller = response.data;
-          console.log(this.seller);
+    methods: {
+      _followStore (event) {
+        if (!event._constructed) {
+          return;
         }
-      }, (err) => {
-        console.log(err);
+        this.favorite = !this.favorite;
+        saveToLocal(this.seller.id, 'favorite', this.favorite);
+      },
+      _initScroll () {
+        if (!this.scroll) {
+          this.scroll = new BScroll(this.$refs['seller-wrapper'], {
+            click: true
+          });
+        } else {
+          this.scroll.refresh();
+        }
+      }
+    },
+    mounted () {
+      this.$nextTick(function () {
+        this._initScroll();
       })
+      if (this.seller.pics) {
+        let picW = 120;
+        let margin = 6;
+        let width = (picW + margin) * this.seller.pics.length + picW;
+        this.$refs['pics-wrapper'].getElementsByTagName('ul')[0].style.width = width + 'px';
+        this.$nextTick(function () {
+          this.picsScroll = new BScroll(this.$refs['pics-wrapper'], {
+            scrollX: true,
+            eventPassthrough: 'vertical'
+          })
+        })
+      }
     }
   }
 </script>
@@ -87,6 +129,12 @@
   @import '../../common/scss/mixin.scss';
 
   .seller-wrapper {
+    position: absolute;
+    overflow: hidden;
+    width: 100%;
+    top: rem(352);
+    bottom: 0;
+    left: 0;
     background-color: #f3f5f7;
   }
 
@@ -135,8 +183,28 @@
     }
     .header-right {
       position: absolute;
-      right: 0;
-      top: 0;
+      right: rem(36);
+      top: rem(28);
+      width: rem(96);
+      text-align: center;
+      .icon {
+        display: block;
+        width: rem(48);
+        height: rem(48);
+        margin: 0 auto rem(8);
+        background-color: rgba(7, 17, 27, .1);
+        border: rem(2) solid rgba(7, 17, 27, .1);
+        border-radius: 50%;
+        &.active {
+          background-color: rgb(240, 20, 20);
+          border-color: rgb(240, 20, 20);
+        }
+      }
+      .text {
+        font-size: rem(20);
+        line-height: rem(20);
+        color: rgb(77, 85, 93);
+      }
     }
     .des {
       display: flex;
@@ -197,16 +265,26 @@
   /* pics */
   .seller-pics {
     overflow: hidden;
-    padding-bottom: rem(36);
+    padding: rem(36) 0;
     .title {
+      padding: 0 rem(36);
       margin-bottom: rem(24);
     }
+    .pics-wrapper {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+    }
     .pics-list {
-      width: 3000px;
+      padding-left: rem(36);
+      font-size: 0;
     }
     .pics-item {
-      float: left;
+      display: inline-block;
       margin-right: rem(12);
+      &:last-child {
+        margin-right: 0;
+      }
     }
     .pic {
       width: rem(240);
@@ -214,18 +292,20 @@
       vertical-align: top;
     }
   }
+
   /* info */
   .seller-info {
     .title {
       margin-bottom: rem(24);
     }
-    .info-list {}
+    .info-list {
+    }
     .info-item {
       padding: rem(32) rem(24);
       line-height: rem(32);
       font-size: rem(24);
-      border-top: rem(2) solid rgba(7,17,27,.1);
-      color: rgb(7,17,27);
+      border-top: rem(2) solid rgba(7, 17, 27, .1);
+      color: rgb(7, 17, 27);
     }
   }
 </style>

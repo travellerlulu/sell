@@ -38,7 +38,7 @@
     <shopcart :select-foods="selectFoods" :min-price="seller.minPrice"
               :delivery-price="seller.deliveryPrice"></shopcart>
 
-      <food :food="selectedFood" ref="food"></food>
+    <food :food="selectedFood" ref="food"></food>
 
   </div>
 </template>
@@ -52,10 +52,14 @@
 
   const ERR_OK = 0;
   export default {
+    props: {
+      seller: {
+        type: Object
+      }
+    },
     data () {
       return {
         goods: [],
-        seller: {},
         listHeight: [],
         scrollY: 0,
         selectedFood: {}
@@ -144,17 +148,6 @@
       }, (error) => {
         console.log(error);
       });
-      axios.get('/api/seller', {
-        headers: {
-          'Content-type': 'application/json'
-        }
-      }).then((response) => {
-        if (response.data.errno === ERR_OK) {
-          this.seller = response.data.data;
-        }
-      }, (error) => {
-        console.log(error);
-      })
     }
   }
 </script>
@@ -290,7 +283,6 @@
       }
     }
   }
-
 
 
 </style>

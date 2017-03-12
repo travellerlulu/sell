@@ -35,15 +35,17 @@
             <ratingSelect :ratings="food.ratings" :select-type="selectType" :switch-type="switchType"
                           :desc="desc" @select="ratingSelect" @toggle="ratingSwitch"></ratingSelect>
           </div>
-          <ul class="ratings-list">
-            <li v-for="rating in food.ratings" class="rating-item">
-              <div class="des">
-                <span class="left">{{rating.rateTime}}</span>
-                <span class="right">{{rating.username}}<img :src="rating.avatar" alt=""></span>
+          <ul class="ratings-list" v-show="food.ratings && food.ratings.length > 0">
+            <li v-for="rating in food.ratings" class="rating-item" v-show="_needShow(rating.rateType,rating.text)">
+              <div class="user">
+                <span class="name">{{rating.username}}</span>
+                <img :src="rating.avatar" alt="" class="avatar">
               </div>
-              <p class="content">{{rating.text}}</p>
+              <div class="time">{{rating.rateTime | formatTime}}</div>
+              <p class="content"><i class="icon" :class="{'on':rating.rateType===0}"></i>{{rating.text}}</p>
             </li>
           </ul>
+          <div v-show="!food.ratings || food.ratings.length === 0" class="no-rating">暂无评价</div>
         </div>
       </div>
     </div>
@@ -51,11 +53,10 @@
 </template>
 <script type="text/ecmascript-6">
   import BScroll from 'better-scroll';
+  import {formatDate} from '../../common/js/date';
   import cartcontrol from '../cartcontrol/cartcontrol.vue';
   import ratingSelect from '../ratingSelect/ratingSelect.vue';
 
-  //  const POSITIVE = 0;
-  //  const NEGATIVE = 1;
   const ALL = 2;
   export default {
     props: {
@@ -67,7 +68,7 @@
       return {
         showFlag: false,
         selectType: ALL,
-        switchType: true,
+        switchType: false,
         desc: {
           all: '全部',
           positive: '推荐',
@@ -82,7 +83,7 @@
     methods: {
       show () {
         this.selectType = ALL;
-        this.switchType = true;
+        this.switchType = false;
         this.showFlag = true;
         this.$nextTick(() => {
           if (!this.scroll) {
@@ -105,9 +106,31 @@
       },
       ratingSelect (value) {
         this.selectType = value;
+        this.$nextTick(() => {
+          this.scroll.refresh();
+        })
       },
       ratingSwitch (value) {
         this.switchType = value;
+        this.$nextTick(() => {
+          this.scroll.refresh();
+        })
+      },
+      _needShow (type, text) {
+        if (this.switchType && !text) {
+          return false;
+        }
+        if (this.selectType === ALL) {
+          return true;
+        } else {
+          return type === this.selectType;
+        }
+      }
+    },
+    filters: {
+      formatTime (time) {
+        let date = new Date(time);
+        return formatDate(date, 'yyyy-MM-DD hh:mm');
       }
     }
   }
@@ -119,7 +142,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    bottom: rem(100);
+    bottom: rem(80);
     width: 100%;
     z-index: 30;
     background-color: #f3f5f7;
@@ -242,15 +265,71 @@
       color: rgb(77, 85, 93);
     }
     &.card-ratings {
+      padding: rem(36) 0;
       .title {
+        padding: 0 rem(36);
         margin-bottom: 0;
+      }
+      .ratings-select {
+        padding: 0 rem(36);
       }
     }
     .ratings-list {
       padding: 0 rem(36);
+      border-top: rem(2) solid rgba(7, 17, 27, .1);
       .rating-item {
-        border-bottom: rem(2) solid rgba(7,17,27,.1);
+        position: relative;
+        padding: rem(32) 0;
+        border-bottom: rem(2) solid rgba(7, 17, 27, .1);
       }
+      .time {
+        font-size: rem(20);
+        line-height: rem(24);
+        margin-bottom: rem(12);
+        color: rgb(147, 153, 159);
+      }
+      .user {
+        position: absolute;
+        right: 0;
+        top: rem(36);
+        line-height: rem(24);
+        font-size: 0;
+        .name {
+          font-size: rem(20);
+          line-height: rem(24);
+          margin-right: rem(12);
+          color: rgb(147, 153, 159);
+        }
+        .avatar {
+          width: rem(24);
+          height: rem(24);
+          border-radius: 50%;
+          vertical-align: top;
+        }
+      }
+      .content {
+        font-size: rem(24);
+        line-height: rem(32);
+        color: rgb(7, 17, 27);
+        .icon {
+          display: inline-block;
+          width: rem(24);
+          height: rem(24);
+          margin: rem(4) rem(8) 0 0;
+          vertical-align: top;
+          background-color: rgba(7, 17, 27, .3);
+          border-radius: 50%;
+          &.on {
+            background-color: rgb(0, 160, 240);
+          }
+        }
+      }
+    }
+    .no-rating {
+      padding: rem(36);
+      font-size: rem(24);
+      border-top: rem(2) solid rgba(7, 17, 27, .1);
+      color: rgb(147, 153, 159);
     }
   }
 

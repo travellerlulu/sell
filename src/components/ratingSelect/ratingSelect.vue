@@ -137,7 +137,7 @@
     }
     &.on {
       .icon {
-        background-color: lightgreen;
+        background-color: seagreen;
       }
     }
   }

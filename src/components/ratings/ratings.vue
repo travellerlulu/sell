@@ -1,5 +1,5 @@
 <template>
-  <div class="ratings">
+  <div class="ratings" ref="ratings-scroll">
     <div class="ratings-content">
       <div class="overview">
         <div class="overview-left">
@@ -28,11 +28,14 @@
           </div>
         </div>
       </div>
-      <div class="ratings-wrapper" >
-        <ratingSelect :ratings="ratings"></ratingSelect>
+      <div class="ratings-wrapper">
+        <div class="ratings-con">
+          <ratingSelect :ratings="ratings" :select-type="selectType" :switch-type="switchType"
+                        @select="ratingsSelect" @toggle="ratingsToggle"></ratingSelect>
+        </div>
         <div class="ratings-box">
           <ul class="ratings-list" v-if="ratings && ratings.length">
-            <li v-for="rating in ratings" class="ratings-item">
+            <li v-for="rating in ratings" class="ratings-item" v-show="needShow(rating.rateType, rating.text)">
               <div class="item-top">
                 <figure class="avatar"><img :src="rating.avatar" alt=""></figure>
                 <div class="user-info">
@@ -43,7 +46,7 @@
                     </div>
                     <span class="delivery">{{rating.deliveryTime}}分钟送达</span></div>
                 </div>
-                <div class="time">{{rating.rateTime}}</div>
+                <div class="time">{{rating.rateTime | formatTime}}</div>
               </div>
               <div class="item-main">{{rating.text}}</div>
               <div class="item-bottom">
@@ -52,9 +55,7 @@
               </div>
             </li>
           </ul>
-          <div class="no-rating" v-if="!ratings || !ratings.length">
-            暂无评价
-          </div>
+          <div v-show="!ratings || ratings.length === 0" class="no-rating">暂无评价</div>
         </div>
       </div>
     </div>
@@ -62,10 +63,12 @@
 </template>
 <script type="text/ecmascript-6">
   import axios from 'axios';
-//  import BScroll from 'better-scroll';
+  import {formatDate} from '../../common/js/date';
+  import BScroll from 'better-scroll';
   import star from '../star/star.vue';
   import ratingSelect from '../ratingSelect/ratingSelect.vue';
   const ERR_OK = 0;
+  const ALL = 2;
 
   export default {
     props: {
@@ -75,7 +78,9 @@
     },
     data () {
       return {
-        ratings: []
+        ratings: [],
+        selectType: ALL,
+        switchType: false
       }
     },
     components: {
@@ -83,15 +88,33 @@
       ratingSelect
     },
     filters: {
-      positive (value) {
-        if (!value) return [];
-        let result = [];
-        value.forEach((v) => {
-          if (v.rateType === 1) {
-            result.push(v);
-          }
+      formatTime (time) {
+        let date = new Date(time);
+        return formatDate(date, 'yyyy-MM-DD hh:mm');
+      }
+    },
+    methods: {
+      ratingsSelect (val) {
+        this.selectType = val;
+        this.$nextTick(() => {
+          this.scroll.refresh();
         })
-        return result;
+      },
+      ratingsToggle (val) {
+        this.switchType = val;
+        this.$nextTick(() => {
+          this.scroll.refresh();
+        })
+      },
+      needShow (type, text) {
+        if (this.switchType && !text) {
+          return false;
+        }
+        if (this.selectType === ALL) {
+          return true;
+        } else {
+          return type === this.selectType;
+        }
       }
     },
     created () {
@@ -99,10 +122,11 @@
         response = response.data;
         if (response.errno === ERR_OK) {
           this.ratings = response.data;
-//          this.$nextTick(() => {
-//              console.log(this.$refs['ratings']);
-//            this.ratings = new BScroll(this.$refs['ratings'], {});
-//          })
+          this.$nextTick(() => {
+            this.scroll = new BScroll(this.$refs['ratings-scroll'], {
+              click: true
+            });
+          })
         }
       }, (err) => {
         console.log(err);
@@ -118,7 +142,7 @@
     overflow: hidden;
     width: 100%;
     top: rem(352);
-    bottom: rem(100);
+    bottom: 0;
     left: 0;
     background-color: #F3F5F7;
   }
@@ -195,6 +219,10 @@
     background-color: #fff;
   }
 
+  .ratings-con {
+    padding: 0 rem(36);
+  }
+
   .ratings-box {
     border-top: rem(2) solid rgba(7, 17, 27, .1);
   }
@@ -265,6 +293,12 @@
         border: 1px solid rgba(7, 17, 27, .1);
         color: rgb(147, 153, 159);
       }
+    }
+    .no-rating {
+      padding: rem(36);
+      font-size: rem(24);
+      border-top: rem(2) solid rgba(7, 17, 27, .1);
+      color: rgb(147, 153, 159);
     }
   }
 </style>

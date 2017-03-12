@@ -7,36 +7,47 @@
       <router-link to="/seller" class="tab-item">商家</router-link>
     </div>
     <div class="content">
-      <router-view :seller="seller"></router-view>
+      <keep-alive>
+        <router-view :seller="seller"></router-view>
+      </keep-alive>
     </div>
   </div>
 </template>
 
-<script>
+<script type="text/ecmascript-6">
   import header from 'components/header/header.vue';
   import axios from 'axios';
+  import {urlParse} from 'common/js/util.js';
 
   const ERR_OK = 0;
   export default {
-      data () {
+    data () {
       return {
-        seller: {}
+        seller: {
+          id: (() => {
+            let queryParam = urlParse();
+            return queryParam.id;
+          })()
+        }
       }
     },
     components: {
       'v-header': header
     },
     created () {
-      axios.get('/api/seller').then((response) => {
-        if (response.data.errno === ERR_OK) {
-          this.seller = response.data.data;
-          console.log(this.seller);
-        }
-      }, (error) => {
-        console.log(error);
-      })
+      axios.get('/api/seller?id=' + this.seller.id).then((response) => {
+          response = response.data;
+          if (response.errno === ERR_OK) {
+            this.seller = Object.assign({}, this.seller, response.data);
+            console.log(this.seller);
+          }
+        },
+        (error) => {
+          console.log(error);
+        })
     }
   }
+
 </script>
 
 <style lang="scss" rel="stylesheet/scss">
@@ -46,7 +57,7 @@
     height: rem(80);
     background-color: #fff;
     display: flex;
-    border: rem(2) solid rgba(7, 17, 27, .1);
+    border-bottom: rem(2) solid rgba(7, 17, 27, .1);
     .tab-item {
       font-size: rem(28);
       color: rgb(77, 85, 93);

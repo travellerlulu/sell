@@ -20,7 +20,6 @@
     },
     methods: {
       addCart () {
-        console.log(this.food);
         if (!this.food.count) {
           // ue需要通过set改变数组
           Vue.set(this.food, 'count', 1);

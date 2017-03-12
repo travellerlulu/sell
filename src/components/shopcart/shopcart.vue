@@ -9,32 +9,37 @@
         <div class="total-price" :class="cartClass">¥ {{totalPrice}}</div>
         <div class="delivery">另需配送费 ¥ {{deliveryPrice}}元</div>
       </div>
-      <div class="cart-right" :class="btnClass">
+      <div class="cart-right" :class="btnClass" @click.stop.prevent="pay">
         <span class="btn">{{btnText}}</span>
       </div>
     </div>
+    <transition name="mask-fade">
+      <div class="cart-mask" v-show="listShow" @click="hideList"></div>
+    </transition>
     <transition name="fold">
       <div class="cart-list" v-show="listShow">
         <div class="list-header">
           <h2 class="title">购物车</h2>
           <span class="clear" @click="clearCart">清空</span>
         </div>
-        <ul class="list-content">
-          <li class="list-item" v-for="food in selectFoods">
-            <span class="name">{{food.name}}</span>
-            <div class="price">¥ {{food.price}}</div>
-            <div class="cartcon-wrapper">
-              <cartcontrol :food="food"></cartcontrol>
-            </div>
-          </li>
-        </ul>
+        <div class="list-content-wrapper" ref="list-content">
+          <ul class="list-content">
+            <li class="list-item" v-for="food in selectFoods">
+              <span class="name">{{food.name}}</span>
+              <div class="price">¥ {{food.price}}</div>
+              <div class="cartcon-wrapper">
+                <cartcontrol :food="food"></cartcontrol>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
     </transition>
-
   </div>
 </template>
 <script type="text/ecmascript-6">
   import cartcontrol from '../cartcontrol/cartcontrol.vue';
+  import BScroll from 'better-scroll';
   export default {
     props: {
       selectFoods: {
@@ -68,10 +73,18 @@
         }
         this.fold = !this.fold;
       },
+      hideList () {
+        this.fold = true;
+      },
       clearCart () {
-//        console.log(123);
-//        this.selectFoods = [];
-//        console.log(this.selectFoods);
+        this.selectFoods.forEach((food) => {
+          food.count = 0;
+        })
+      },
+      pay () {
+        if (this.totalPrice >= this.minPrice) {
+          alert(`支付${this.totalPrice}元`);
+        }
       }
     },
     computed: {
@@ -112,6 +125,17 @@
           return false;
         }
         let show = !this.fold;
+        if (show) {
+          this.$nextTick(() => {
+            if (!this.scroll) {
+              this.scroll = new BScroll(this.$refs['list-content'], {
+                click: true
+              })
+            } else {
+                this.scroll.refresh();
+            }
+          })
+        }
         return show;
       }
     },
@@ -133,6 +157,8 @@
     background-color: #141d27;
     .content {
       display: flex;
+      position: relative;
+      z-index: 99;
     }
     .cart-left {
       display: flex;
@@ -226,7 +252,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    z-index: -1;
+    z-index: 42;
     width: 100%;
     background-color: #f3f3f3;
     transition: all .5s linear;
@@ -255,10 +281,12 @@
       color: rgb(0, 160, 220);
     }
   }
-
+  .list-content-wrapper {
+    max-height: rem(434);
+    overflow: hidden;
+  }
   .list-content {
     padding: 0 rem(36);
-    max-height: rem(434);
     background-color: #fff;
     .list-item {
       position: relative;
@@ -284,6 +312,22 @@
         right: 0;
         bottom: rem(20);
       }
+    }
+  }
+
+  .cart-mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(7, 17, 27, .6);
+    backdrop: blur(10px);
+    z-index: 40;
+    transition: all .5s;
+    &.mask-fade-enter, &.mask-fade-leave-active {
+      background-color: rgba(7, 17, 27, 0);
+      opacity: 0;
     }
   }
 </style>
