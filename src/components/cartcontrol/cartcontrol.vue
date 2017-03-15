@@ -6,7 +6,7 @@
       </div>
     </transition>
     <div class="count" v-if="food.count > 0">{{food.count}}</div>
-    <div class="add" @click.stop.prevent="addCart"><i>+</i></div>
+    <div class="add" @click.stop.prevent="addCart($event)" ref="add-btn"><i>+</i></div>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -19,14 +19,16 @@
       }
     },
     methods: {
-      addCart () {
+      addCart (event) {
         if (!this.food.count) {
           // ue需要通过set改变数组
           Vue.set(this.food, 'count', 1);
         } else {
           this.food.count++;
         }
-        this.$emit('add');
+        // 派发添加事件到父组件，传递当前dom元素以获取位置
+        this.$emit('add-cart', event.target);
+//        console.log(this.$refs['add-btn']);
       },
       decreaseCart () {
         if (this.food.count) {

@@ -27,7 +27,7 @@
                   <span class="old" v-if="food.oldPrice !== ''">¥ {{food.oldPrice}}</span>
                 </div>
                 <div class="cartcontrol-wrapper">
-                  <cartcontrol :food="food"></cartcontrol>
+                  <cartcontrol :food="food" @add-cart="toggleAdd"></cartcontrol>
                 </div>
               </div>
             </li>
@@ -36,7 +36,7 @@
       </ul>
     </div>
     <shopcart :select-foods="selectFoods" :min-price="seller.minPrice"
-              :delivery-price="seller.deliveryPrice"></shopcart>
+              :delivery-price="seller.deliveryPrice" ref="shop-cart"></shopcart>
 
     <food :food="selectedFood" ref="food"></food>
 
@@ -131,6 +131,12 @@
         }
         this.selectedFood = food;
         this.$refs.food.show();
+      },
+      toggleAdd (val) {
+        // 异步优化动画
+        this.$nextTick(() => {
+          this.$refs['shop-cart'].drop(val);
+        })
       }
     },
     created () {

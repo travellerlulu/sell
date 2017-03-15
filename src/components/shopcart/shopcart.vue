@@ -35,6 +35,15 @@
         </div>
       </div>
     </transition>
+    <div class="ball-container">
+      <transition name="drop" @before-enter="beforeEnter" @enter="enter" @after-enter="afterEnter"
+                  v-for="ball in balls" :css="false">
+        <span class="ball" v-show="ball.show">
+          <span class="inner inner-hook"></span>
+        </span>
+      </transition>
+    </div>
+
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -63,7 +72,15 @@
     },
     data () {
       return {
-        fold: true
+        fold: true,
+        balls: [ // 多次点击多个小球飞入
+          {show: false},
+          {show: false},
+          {show: false},
+          {show: false},
+          {show: false}
+        ],
+        dropBalls: []
       }
     },
     methods: {
@@ -85,6 +102,56 @@
         if (this.totalPrice >= this.minPrice) {
           alert(`支付${this.totalPrice}元`);
         }
+      },
+      drop (el) {
+        for (let i = 0; i < this.balls.length; i++) {
+          let ball = this.balls[i];
+          if (!ball.show) {
+            ball.show = true;
+            ball.el = el;
+            this.dropBalls.push(ball);
+            return;
+          } else {
+            ball.show = false;
+            this.dropBalls.shift();
+          }
+        }
+      },
+      // transition 钩子函数
+      beforeEnter (el) {
+        let count = this.balls.length;
+        while (count--) {
+          let ball = this.balls[count];
+          if (ball.show) {
+            let rect = ball.el.getBoundingClientRect();
+            let x = (rect.left - 32) + 'px';
+            let y = -(window.innerHeight - rect.top - 22) + 'px';
+            el.style.display = '';
+            el.style.webkitTransform = `translate3d(0,${y},0)`;
+            el.style.transform = `translate3d(0,${y},0)`;
+            let inner = el.getElementsByClassName('inner-hook')[0];
+            inner.style.webkitTransform = `translate3d(${x},0,0)`;
+            inner.style.Transform = `translate3d(${x},0,0)`;
+          }
+        }
+      },
+      enter (el, done) {
+        // 触发浏览器重绘
+        /* eslint-disable no-unused-vars */
+        let rf = el.offsetHeight;
+        el.style.webkitTransform = 'translate3d(0,0,0)';
+        el.style.transform = 'translate3d(0,0,0)';
+        let inner = el.getElementsByClassName('inner-hook')[0];
+        inner.style.webkitTransform = 'translate3d(0,0,0)';
+        inner.style.Transform = 'translate3d(0,0,0)';
+        done();
+        console.log('+++' + 12);
+//        el.style.display = 'none';
+      },
+      afterEnter (el) {
+        this.$nextTick(function () {
+          console.log('=========' + el);
+        })
       }
     },
     computed: {
@@ -132,7 +199,7 @@
                 click: true
               })
             } else {
-                this.scroll.refresh();
+              this.scroll.refresh();
             }
           })
         }
@@ -281,10 +348,12 @@
       color: rgb(0, 160, 220);
     }
   }
+
   .list-content-wrapper {
     max-height: rem(434);
     overflow: hidden;
   }
+
   .list-content {
     padding: 0 rem(36);
     background-color: #fff;
@@ -328,6 +397,25 @@
     &.mask-fade-enter, &.mask-fade-leave-active {
       background-color: rgba(7, 17, 27, 0);
       opacity: 0;
+    }
+  }
+
+  .ball {
+    position: fixed;
+    left: rem(64);
+    bottom: rem(44);
+    width: rem(32);
+    height: rem(32);
+    z-index: 200;
+    transition: all .4s cubic-bezier(0.49, -0.29, 0.75, 0.41);
+    .inner {
+      display: inline-block;
+      width: rem(32);
+      height: rem(32);
+      border-radius: 50%;
+      /*background-color: rgb(0, 160, 220);*/
+      transition: all .4s linear;
+      background-color: #000;
     }
   }
 </style>
