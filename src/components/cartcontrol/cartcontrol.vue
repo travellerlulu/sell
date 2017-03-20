@@ -28,7 +28,6 @@
         }
         // 派发添加事件到父组件，传递当前dom元素以获取位置
         this.$emit('add-cart', event.target);
-//        console.log(this.$refs['add-btn']);
       },
       decreaseCart () {
         if (this.food.count) {

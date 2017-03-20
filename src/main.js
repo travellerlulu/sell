@@ -4,6 +4,8 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import axios from 'axios'
+// import '～common/scss/mixin.scss'
+
 Vue.use(axios);
 
 /* eslint-disable no-new */

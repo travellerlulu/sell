@@ -134,9 +134,9 @@
       },
       toggleAdd (val) {
         // 异步优化动画
-        this.$nextTick(() => {
+//        this.$nextTick(() => {
           this.$refs['shop-cart'].drop(val);
-        })
+//        })
       }
     },
     created () {

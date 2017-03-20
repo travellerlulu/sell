@@ -37,7 +37,7 @@
     </transition>
     <div class="ball-container">
       <transition name="drop" @before-enter="beforeEnter" @enter="enter" @after-enter="afterEnter"
-                  v-for="ball in balls" :css="false">
+                  v-for="ball in balls">
         <span class="ball" v-show="ball.show">
           <span class="inner inner-hook"></span>
         </span>
@@ -111,10 +111,11 @@
             ball.el = el;
             this.dropBalls.push(ball);
             return;
-          } else {
-            ball.show = false;
-            this.dropBalls.shift();
           }
+//          else {
+//            ball.show = false;
+//            this.dropBalls.shift();
+//          }
         }
       },
       // transition 钩子函数
@@ -145,13 +146,15 @@
         inner.style.webkitTransform = 'translate3d(0,0,0)';
         inner.style.Transform = 'translate3d(0,0,0)';
         done();
-        console.log('+++' + 12);
-//        el.style.display = 'none';
       },
       afterEnter (el) {
-        this.$nextTick(function () {
-          console.log('=========' + el);
-        })
+        let ball = this.dropBalls.shift();
+        if (ball) {
+          ball.show = false;
+          console.log(el + '232');
+//          el.style.display = 'none';
+//          console.log(this.balls);
+        }
       }
     },
     computed: {
